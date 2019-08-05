@@ -80,26 +80,24 @@ void NavSatTransform::run()
   double transform_timeout = 0.0;
 
   // Load the parameters we need
-  magnetic_declination_ = node_->get_parameter("magnetic_declination_radians");
-  node_->get_parameter_or("yaw_offset", yaw_offset_, 0.0);
-  node_->get_parameter_or("broadcast_utm_transform", broadcast_utm_transform_,
-    false);
-  node_->get_parameter_or("broadcast_utm_transform_as_parent_frame",
-    broadcast_utm_transform_as_parent_frame_, false);
-  node_->get_parameter_or("zero_altitude", zero_altitude_, false);
-  node_->get_parameter_or("publish_filtered_gps", publish_gps_, false);
-  node_->get_parameter_or("use_odometry_yaw", use_odometry_yaw_, false);
-  node_->get_parameter_or("wait_for_datum", use_manual_datum_, false);
-  node_->get_parameter_or("frequency", frequency, 10.0);
-  node_->get_parameter_or("delay", delay, 0.0);
-  node_->get_parameter_or("transform_timeout", transform_timeout, 0.0);
+  magnetic_declination_ = node_->declare_parameter("magnetic_declination_radians");
+  yaw_offset_ = node_->declare_parameter("yaw_offset", 0.0);
+  node_->declare_parameter("broadcast_utm_transform", broadcast_utm_transform_, false);
+  broadcast_utm_transform_as_parent_frame_ = node_->declare_parameter("broadcast_utm_transform_as_parent_frame", false);
+  zero_altitude_ = node_->declare_parameter("zero_altitude", false);
+  publish_gps_ = node_->declare_parameter("publish_filtered_gps", false);
+  use_odometry_yaw_ = node_->declare_parameter("use_odometry_yaw", false);
+  use_manual_datum_ = node_->declare_parameter("wait_for_datum", false);
+  frequency = node_->declare_parameter("frequency", 10.0);
+  delay = node_->declare_parameter("delay", 0.0);
+  transform_timeout = node_->declare_parameter("transform_timeout", 0.0);
   transform_timeout_ = tf2::durationFromSec(transform_timeout);
 
   auto datum_srv = create_service<robot_localization::srv::set_datum>(
     "datum", std::bind(&NavSatTransform::datumCallback, this, _1, _2));
 
   std::vector<double> datum_vals;
-  if (use_manual_datum_ && node_->get_parameter("datum", datum_vals)) {
+  if (use_manual_datum_ && node_->declare_parameter("datum", datum_vals)) {
     double datum_lat = 0.0;
     double datum_lon = 0.0;
     double datum_yaw = 0.0;
@@ -132,12 +130,12 @@ void NavSatTransform::run()
   }
 
   auto gps_odom_pub =
-    node_->create_publisher<nav_msgs::msg::Odometry>("odometry/gps");
+    node_->create_publisher<nav_msgs::msg::Odometry>("odometry/gps", 10);
   rclcpp::Subscription::SharedPtr filtered_gps_pub;
 
   if (publish_gps_) {
     filtered_gps_pub =
-      node_->create_publisher<sensor_msgs::msg::NavSatFix>("gps/filtered");
+      node_->create_publisher<sensor_msgs::msg::NavSatFix>("gps/filtered", 10);
   }
 
   // Sleep for the parameterized amount of time, to give
@@ -158,13 +156,13 @@ void NavSatTransform::run()
     } else {
       nav_msgs::msg::Odometry gps_odom;
       if (prepareGpsOdometry(gps_odom)) {
-        gps_odom_pub->publish(gps_odom);
+        gps_odom_pub->publish(*gps_odom);
       }
 
       if (publish_gps_) {
         sensor_msgs::msg::NavSatFix odom_gps;
         if (prepareFilteredGps(odom_gps)) {
-          filtered_gps_pub.publish(odom_gps);
+          filtered_gps_pub.publish(*odom_gps);
         }
       }
     }

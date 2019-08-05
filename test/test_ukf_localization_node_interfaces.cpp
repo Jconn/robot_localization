@@ -106,14 +106,13 @@ TEST(InterfacesTest, OdomPoseBasicIO) {
   auto node_ =
     rclcpp::Node::make_shared("InterfacesTest_OdomPoseBasicIO_testcase");
 
-  rmw_qos_profile_t custom_qos_profile = rmw_qos_profile_default;
-  custom_qos_profile.depth = 5;
+  auto custom_qos_profile = rclcpp::SensorDataQoS();
   // publish and subscribe calls have been changed as per ros2
   auto odomPub = node_->create_publisher<nav_msgs::msg::Odometry>(
     "odom_input0", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", filterCallback);
+    "/odometry/filtered", 10, filterCallback);
 
   nav_msgs::msg::Odometry odom;
   odom.pose.pose.position.x = 20.0;
@@ -156,14 +155,13 @@ TEST(InterfacesTest, OdomTwistBasicIO) {
   auto node_ =
     rclcpp::Node::make_shared("InterfacesTest_OdomTwistBasicIO_testcase");
 
-  rmw_qos_profile_t custom_qos_profile = rmw_qos_profile_default;
-  custom_qos_profile.depth = 5;
+  auto custom_qos_profile = rclcpp::SensorDataQoS();
   // publish and subscribe calls have been changed as per ros2
   auto odomPub = node_->create_publisher<nav_msgs::msg::Odometry>(
     "odom_input2", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", filterCallback);
+    "/odometry/filtered", 10, filterCallback);
 
   nav_msgs::msg::Odometry odom;
   odom.twist.twist.linear.x = 5.0;
@@ -303,15 +301,14 @@ TEST(InterfacesTest, OdomTwistBasicIO) {
 TEST(InterfacesTest, PoseBasicIO) {
   // node handle is created as per ros2
   auto node_ = rclcpp::Node::make_shared("InterfacesTest_PoseBasicIO_testcase");
-  rmw_qos_profile_t custom_qos_profile = rmw_qos_profile_default;
-  custom_qos_profile.depth = 5;
+  auto custom_qos_profile = rclcpp::SensorDataQoS();
   // publish and subscribe calls have been changed as per ros2
   auto posePub =
     node_->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
     "pose_input0", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", filterCallback);
+    "/odometry/filtered", 10, filterCallback);
 
   geometry_msgs::msg::PoseWithCovarianceStamped pose;
   pose.pose.pose.position.x = 20.0;
@@ -365,7 +362,7 @@ TEST(InterfacesTest, TwistBasicIO) {
     "twist_input0", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", filterCallback);
+    "/odometry/filtered", 10, filterCallback);
 
   geometry_msgs::msg::TwistWithCovarianceStamped twist;
   twist.twist.twist.linear.x = 5.0;
@@ -505,14 +502,13 @@ TEST(InterfacesTest, ImuPoseBasicIO) {
   // node handle is created as per ros2
   auto node_ =
     rclcpp::Node::make_shared("InterfacesTest_ImuPoseBasicIO_testcase");
-  rmw_qos_profile_t custom_qos_profile = rmw_qos_profile_default;
-  custom_qos_profile.depth = 5;
+  auto custom_qos_profile = rclcpp::SensorDataQoS();
   // publish and subscribe calls have been changed as per ros2
   auto imuPub = node_->create_publisher<sensor_msgs::msg::Imu>(
     "/imu_input0", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", filterCallback);
+    "/odometry/filtered", 10, filterCallback);
 
   sensor_msgs::msg::Imu imu;
   tf2::Quaternion quat;
@@ -583,14 +579,13 @@ TEST(InterfacesTest, ImuTwistBasicIO) {
   // node handle is created as per ros2
   auto node_ =
     rclcpp::Node::make_shared("InterfacesTest_ImuTwistBasicIO_testcase");
-  rmw_qos_profile_t custom_qos_profile = rmw_qos_profile_default;
-  custom_qos_profile.depth = 5;
+  auto custom_qos_profile = rclcpp::SensorDataQoS();
   // publish and subscribe calls have been changed as per ros2
   auto imuPub = node_->create_publisher<sensor_msgs::msg::Imu>(
     "/imu_input1", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", filterCallback);
+    "/odometry/filtered", 10, filterCallback);
 
   sensor_msgs::msg::Imu imu;
   tf2::Quaternion quat;
@@ -703,14 +698,13 @@ TEST(InterfacesTest, ImuAccBasicIO) {
   // node handle is created as per ros2
   auto node_ =
     rclcpp::Node::make_shared("InterfacesTest_ImuAccBasicIO_testcase");
-  rmw_qos_profile_t custom_qos_profile = rmw_qos_profile_default;
-  custom_qos_profile.depth = 5;
+  auto custom_qos_profile = rclcpp::SensorDataQoS();
   // publish and subscribe calls have been changed as per ros2
   auto imuPub = node_->create_publisher<sensor_msgs::msg::Imu>(
     "imu_input2", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", filterCallback);
+    "/odometry/filtered", 10, filterCallback);
 
   sensor_msgs::msg::Imu imu;
   imu.header.frame_id = "base_link";
@@ -781,14 +775,13 @@ TEST(InterfacesTest, OdomDifferentialIO) {
   // node handle is created as per ros2
   auto node_ =
     rclcpp::Node::make_shared("InterfacesTest_OdomDifferentialIO_testcase");
-  rmw_qos_profile_t custom_qos_profile = rmw_qos_profile_default;
-  custom_qos_profile.depth = 5;
+  auto custom_qos_profile = rclcpp::SensorDataQoS();
   // publish and subscribe calls have been changed as per ros2
   auto odomPub = node_->create_publisher<nav_msgs::msg::Odometry>(
     "/odom_input1", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", filterCallback);
+    "/odometry/filtered", 10, filterCallback);
 
   nav_msgs::msg::Odometry odom;
   odom.pose.pose.position.x = 20.0;
@@ -865,7 +858,7 @@ TEST(InterfacesTest, PoseDifferentialIO) {
     "/pose_input1", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", filterCallback);
+    "/odometry/filtered", 10, filterCallback);
 
   geometry_msgs::msg::PoseWithCovarianceStamped pose;
   pose.pose.pose.position.x = 20.0;
@@ -936,8 +929,7 @@ TEST(InterfacesTest, ImuDifferentialIO) {
   // node handle is created as per ros2
   auto node_ =
     rclcpp::Node::make_shared("InterfacesTest_ImuDifferentialIO_testcase");
-  rmw_qos_profile_t custom_qos_profile = rmw_qos_profile_default;
-  custom_qos_profile.depth = 5;
+  auto custom_qos_profile = rclcpp::SensorDataQoS();
   // publish and subscribe calls have been changed as per ros2
   auto imu0Pub = node_->create_publisher<sensor_msgs::msg::Imu>(
     "/imu_input0", custom_qos_profile);
@@ -947,7 +939,7 @@ TEST(InterfacesTest, ImuDifferentialIO) {
     "/imu_input3", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", filterCallback);
+    "/odometry/filtered", 10, filterCallback);
 
   sensor_msgs::msg::Imu imu;
   imu.header.frame_id = "base_link";
