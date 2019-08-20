@@ -393,7 +393,9 @@ void RosFilter::imuCallback(
   const CallbackData & twist_callback_data,
   const CallbackData & accel_callback_data)
 {
-  RF_DEBUG("------ RosFilter::imuCallback (" <<
+
+    //RCLCPP_INFO(node_->get_logger(), "imu data on %s", topic_name.c_str());
+    RF_DEBUG("------ RosFilter::imuCallback (" <<
     topic_name << ") ------\n")           // << "IMU message:\n" << *msg);
 
   // If we've just reset the filter, then we want to ignore any messages
@@ -616,6 +618,7 @@ void RosFilter::loadParams()
    * sources are measuring each absolute pose variable and do not have
    * differential integration enabled.
    */
+    RCLCPP_INFO(node_->get_logger(), "beginning run");
   std::map<StateMembers, int> abs_pose_var_counts;
   abs_pose_var_counts[StateMemberX] = 0;
   abs_pose_var_counts[StateMemberY] = 0;
@@ -642,11 +645,14 @@ void RosFilter::loadParams()
 
   // Grab the debug param. If true, the node will produce a LOT of output.
   bool debug = false;
-  debug = node_->declare_parameter("debug", false);
-
+  debug = node_->declare_parameter("debug", debug);
+  node_->get_parameter("debug", debug);
   if (debug) {
+    filter_->setDebug(debug, &std::cout);
     std::string debug_out_file;
 
+    RF_DEBUG("\n----- jc validation message------\n");
+    /*
     try {
       debug_out_file = "robot_localization_debug.txt";
       node_->declare_parameter("debug_out_file", debug_out_file);
@@ -654,7 +660,7 @@ void RosFilter::loadParams()
 
       // Make sure we succeeded
       if (debug_stream_.is_open()) {
-        filter_->setDebug(debug, &debug_stream_);
+        filter_->setDebug(debug, &std::cout);
       } else {
         std::cerr <<
           "RosFilter::loadParams() - unable to create debug output file " <<
@@ -665,6 +671,7 @@ void RosFilter::loadParams()
         "RosFilter::loadParams() - unable to create debug output file" <<
         debug_out_file << ". Error was " << e.what() << "\n";
     }
+    */
   }
 
   // These params specify the name of the robot's body frame (typically
@@ -674,6 +681,9 @@ void RosFilter::loadParams()
   base_link_frame_id_ = node_->declare_parameter("base_link_frame",
     std::string("base_link"));
 
+  std::cerr << "loaded map as: " << map_frame_id_ <<", odom as: " << odom_frame_id_ << ", base_link as: " << base_link_frame_id_ << std::endl;
+
+    RCLCPP_INFO(node_->get_logger(), "loaded params");
   /*
    * These parameters are designed to enforce compliance with REP-105:
    * http://www.ros.org/reps/rep-0105.html
@@ -949,8 +959,11 @@ void RosFilter::loadParams()
     ss << "odom" << topic_ind++;
     std::string odom_topic_name = ss.str();
     std::string odom_topic;
-    more_params = node_->get_parameter(odom_topic_name, odom_topic);
+    node_->declare_parameter(odom_topic_name, "");
+    node_->get_parameter(odom_topic_name,odom_topic); 
+    more_params = odom_topic.compare("") != 0;
 
+    RCLCPP_INFO(node_->get_logger(), "going for odom num %s, and topic %s", odom_topic_name.c_str(), odom_topic.c_str() );
     if (more_params) {
       // Determine if we want to integrate this sensor differentially
       bool differential = false;
@@ -969,7 +982,7 @@ void RosFilter::loadParams()
         relative = false;
       }
 
-      node_->declare_parameter(odom_topic_name, odom_topic);
+      //node_->declare_parameter(odom_topic_name, odom_topic);
 
       // Check for pose rejection threshold
       double pose_mahalanobis_thresh = std::numeric_limits<double>::max();
@@ -999,6 +1012,7 @@ void RosFilter::loadParams()
         std::accumulate(pose_update_vec.begin(), pose_update_vec.end(), 0);
       int twist_update_sum =
         std::accumulate(twist_update_vec.begin(), twist_update_vec.end(), 0);
+      RCLCPP_INFO(node_->get_logger(), "pose sum %d, twist sum %d", pose_update_sum, twist_update_sum);
 
       const CallbackData pose_callback_data(
         odom_topic_name + "_pose", pose_update_vec, pose_update_sum,
@@ -1015,6 +1029,7 @@ void RosFilter::loadParams()
             std::placeholders::_1, odom_topic_name,
             pose_callback_data, twist_callback_data);
 
+        RCLCPP_INFO(node_->get_logger(), "subscribing to odom topic %s", odom_topic.c_str());
         topic_subs_.push_back(
           node_->create_subscription<nav_msgs::msg::Odometry>(odom_topic, 10, 
           odom_callback));
@@ -1063,15 +1078,15 @@ void RosFilter::loadParams()
       }
 
       RF_DEBUG("Subscribed to " <<
-        odom_topic << " (" << odom_topic_name << ")\n\t" <<
-        odom_topic_name << "_differential is " <<
-        (differential ? "true" : "false") << "\n\t" << odom_topic_name <<
-        "_pose_rejection_threshold is " << pose_mahalanobis_thresh <<
-        "\n\t" << odom_topic_name << "_twist_rejection_threshold is " <<
-        twist_mahalanobis_thresh << "\n\t" << odom_topic_name <<
-        " pose update vector is " << pose_update_vec << "\t" <<
-        odom_topic_name << " twist update vector is " <<
-        twist_update_vec);
+              odom_topic << " (" << odom_topic_name << ")\n\t" <<
+              odom_topic_name << "_differential is " <<
+              (differential ? "true" : "false") << "\n\t" << odom_topic_name <<
+              "_pose_rejection_threshold is " << pose_mahalanobis_thresh <<
+              "\n\t" << odom_topic_name << "_twist_rejection_threshold is " <<
+              twist_mahalanobis_thresh << "\n\t" << odom_topic_name <<
+              " pose update vector is " << pose_update_vec << "\t" <<
+              odom_topic_name << " twist update vector is " <<
+              twist_update_vec);
     }
   } while (more_params);
 
@@ -1083,8 +1098,9 @@ void RosFilter::loadParams()
     ss << "pose" << topic_ind++;
     std::string pose_topic_name = ss.str();
     std::string pose_topic;
-    more_params = node_->get_parameter(pose_topic_name, pose_topic);
-
+    node_->declare_parameter(pose_topic_name,""); 
+    node_->get_parameter(pose_topic_name,pose_topic); 
+    more_params = pose_topic.compare("") != 0; 
     if (more_params) {
       bool differential = false;
       node_->declare_parameter(pose_topic_name + std::string("_differential"),
@@ -1180,8 +1196,9 @@ void RosFilter::loadParams()
     ss << "twist" << topic_ind++;
     std::string twist_topic_name = ss.str();
     std::string twist_topic;
-    more_params = node_->get_parameter(twist_topic_name, twist_topic);
-
+    node_->declare_parameter(twist_topic_name, "");
+    node_->get_parameter(twist_topic_name, twist_topic);
+    more_params = twist_topic.compare("") != 0;
     if (more_params) {
       // Check for twist rejection threshold
       double twist_mahalanobis_thresh = std::numeric_limits<double>::max();
@@ -1243,8 +1260,9 @@ void RosFilter::loadParams()
     ss << "imu" << topic_ind++;
     std::string imu_topic_name = ss.str();
     std::string imu_topic;
-    more_params = node_->get_parameter(imu_topic_name, imu_topic);
-
+    node_->declare_parameter(imu_topic_name, "");
+    node_->get_parameter(imu_topic_name, imu_topic);
+    more_params = imu_topic.compare("") != 0;
     if (more_params) {
       bool differential = false;
       node_->declare_parameter(imu_topic_name + std::string("_differential"),
@@ -1354,14 +1372,16 @@ void RosFilter::loadParams()
           imu_topic_name + "_acceleration", accel_update_vec, accelUpdateSum,
           differential, relative, accel_mahalanobis_thresh);
 
+
         std::function<void(const std::shared_ptr<sensor_msgs::msg::Imu>)>
         imu_callback =
           std::bind(&RosFilter::imuCallback, this, std::placeholders::_1,
             imu_topic_name, pose_callback_data,
             twist_callback_data, accel_callback_data);
 
+        RCLCPP_INFO(node_->get_logger(), "subscribing to imu topic %s", imu_topic.c_str());
         topic_subs_.push_back(node_->create_subscription<sensor_msgs::msg::Imu>(
-            imu_topic, 10, imu_callback));
+            imu_topic, rclcpp::SensorDataQoS(), imu_callback));
       } else {
         std::cerr << "Warning: " << imu_topic <<
           " is listed as an input topic, "
@@ -1546,6 +1566,7 @@ void RosFilter::odometryCallback(
   const CallbackData & pose_callback_data,
   const CallbackData & twist_callback_data)
 {
+
   // If we've just reset the filter, then we want to ignore any messages
   // that arrive with an older timestamp
   if (last_set_pose_time_ >= msg->header.stamp) {
@@ -1731,10 +1752,14 @@ void RosFilter::run()
 
   rclcpp::Rate loop_rate(frequency_);
 
+  RCLCPP_INFO(node_->get_logger(), "beginning run");
+  rclcpp::executors::SingleThreadedExecutor exec;
+  exec.add_node(node_);
   while (rclcpp::ok()) {
+
     // The spin will call all the available callbacks and enqueue
     // their received measurements
-    rclcpp::spin_some(node_);
+    exec.spin_some();
     cur_time = node_->now();
 
     // Now we'll integrate any measurements we've received
@@ -2173,7 +2198,9 @@ std::vector<bool> RosFilter::loadUpdateConfig(const std::string & topic_name)
   std::vector<bool> update_vector(STATE_SIZE, 0);
   const std::string topc_config_name = topic_name + "_config";
 
+  RCLCPP_INFO(node_->get_logger(), "loading vector of bools..? %s", topc_config_name.c_str());
   node_->declare_parameter(topc_config_name, update_vector);
+  node_->get_parameter(topc_config_name, update_vector);
 
   return update_vector;
 }
@@ -2233,6 +2260,8 @@ bool RosFilter::prepareAcceleration(
     tf_buffer_, target_frame, msg_frame, msg->header.stamp, tf_timeout_,
     target_frame_trans);
 
+  //RCLCPP_INFO(node_->get_logger(), "accel status %d when trying to transform from %s to %s",
+  //        can_transform, msg_frame.c_str(), target_frame.c_str());
   if (can_transform) {
     // We don't know if the user has already handled the removal
     // of normal forces, so we use a parameter
@@ -2427,6 +2456,9 @@ bool RosFilter::preparePose(
     tf_buffer_, final_target_frame, pose_tmp.frame_id_,
     rclcpp::Time(tf2::timeToSec(pose_tmp.stamp_)), tf_timeout_,
     target_frame_trans);
+
+  //RCLCPP_INFO(node_->get_logger(), "pose status %d when trying to transform from %s to %s",
+  //       can_transform, pose_tmp.frame_id_.c_str(), final_target_frame.c_str());
 
   // 3. Make sure we can work with this data before carrying on
   if (can_transform) {
@@ -2808,6 +2840,8 @@ bool RosFilter::prepareTwist(
     tf_buffer_, target_frame, msg_frame, msg->header.stamp, tf_timeout_,
     target_frame_trans);
 
+  //RCLCPP_INFO(node_->get_logger(), "twist status %d when trying to transform from %s to %s",
+  //        can_transform, msg_frame.c_str(), target_frame.c_str());
   if (can_transform) {
     // Transform to correct frame. Note that we can get linear velocity
     // as a result of the sensor offset and rotational velocity

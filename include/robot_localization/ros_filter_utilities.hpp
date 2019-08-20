@@ -44,11 +44,16 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
 #define RF_DEBUG(msg) \
   if (filter_->getDebug()) { \
     debug_stream_ << msg; \
   }
+
+/*
+#define RF_DEBUG(msg) \
+    std::cout << msg; 
+  
+*/
 
 // Handy methods for debug output
 std::ostream & operator<<(std::ostream & os, const tf2::Vector3 & vec);

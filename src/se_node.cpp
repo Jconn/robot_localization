@@ -54,6 +54,7 @@ int main(int argc, char ** argv)
 
   robot_localization::FilterBase::UniquePtr filter;
 
+
   if (filter_type == "ukf") {
     double alpha = 0.001;
     double kappa = 0.0;
@@ -71,8 +72,13 @@ int main(int argc, char ** argv)
     }
 
     filter = std::make_unique<robot_localization::Ekf>();
+    bool debug = false;
+    node->declare_parameter("debug_rl", debug);
+    node->get_parameter("debug_rl", debug);
+    filter->setDebug(debug, &std::cerr);
   }
 
+  std::cerr << "starting rob localization";
   robot_localization::RosFilter ros_filter(node, filter);
   ros_filter.run();
 
