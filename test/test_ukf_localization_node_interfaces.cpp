@@ -112,7 +112,7 @@ TEST(InterfacesTest, OdomPoseBasicIO) {
     "odom_input0", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", 10, filterCallback);
+    "/odometry/filtered", custom_qos_profile, filterCallback);
 
   nav_msgs::msg::Odometry odom;
   odom.pose.pose.position.x = 20.0;
@@ -161,7 +161,7 @@ TEST(InterfacesTest, OdomTwistBasicIO) {
     "odom_input2", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", 10, filterCallback);
+    "/odometry/filtered", custom_qos_profile, filterCallback);
 
   nav_msgs::msg::Odometry odom;
   odom.twist.twist.linear.x = 5.0;
@@ -308,7 +308,7 @@ TEST(InterfacesTest, PoseBasicIO) {
     "pose_input0", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", 10, filterCallback);
+    "/odometry/filtered", custom_qos_profile, filterCallback);
 
   geometry_msgs::msg::PoseWithCovarianceStamped pose;
   pose.pose.pose.position.x = 20.0;
@@ -508,7 +508,7 @@ TEST(InterfacesTest, ImuPoseBasicIO) {
     "/imu_input0", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", 10, filterCallback);
+    "/odometry/filtered", custom_qos_profile, filterCallback);
 
   sensor_msgs::msg::Imu imu;
   tf2::Quaternion quat;
@@ -585,7 +585,7 @@ TEST(InterfacesTest, ImuTwistBasicIO) {
     "/imu_input1", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", 10, filterCallback);
+    "/odometry/filtered", custom_qos_profile, filterCallback);
 
   sensor_msgs::msg::Imu imu;
   tf2::Quaternion quat;
@@ -704,7 +704,7 @@ TEST(InterfacesTest, ImuAccBasicIO) {
     "imu_input2", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", 10, filterCallback);
+    "/odometry/filtered", custom_qos_profile, filterCallback);
 
   sensor_msgs::msg::Imu imu;
   imu.header.frame_id = "base_link";
@@ -781,7 +781,7 @@ TEST(InterfacesTest, OdomDifferentialIO) {
     "/odom_input1", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", 10, filterCallback);
+    "/odometry/filtered", custom_qos_profile, filterCallback);
 
   nav_msgs::msg::Odometry odom;
   odom.pose.pose.position.x = 20.0;
@@ -939,7 +939,7 @@ TEST(InterfacesTest, ImuDifferentialIO) {
     "/imu_input3", custom_qos_profile);
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
-    "/odometry/filtered", 10, filterCallback);
+    "/odometry/filtered", custom_qos_profile, filterCallback);
 
   sensor_msgs::msg::Imu imu;
   imu.header.frame_id = "base_link";
