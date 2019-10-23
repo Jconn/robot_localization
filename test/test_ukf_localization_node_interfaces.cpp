@@ -354,12 +354,11 @@ TEST(InterfacesTest, TwistBasicIO) {
   // node handle is created as per ros2
   auto node_ =
     rclcpp::Node::make_shared("InterfacesTest_TwistBasicIO_testcase");
-  rmw_qos_profile_t custom_qos_profile = rmw_qos_profile_default;
-  custom_qos_profile.depth = 5;
+
   // publish and subscribe calls have been changed as per ros2
   auto twistPub =
     node_->create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>(
-    "twist_input0", custom_qos_profile);
+    "twist_input0", rclcpp::QoS(5));
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
     "/odometry/filtered", 10, filterCallback);
@@ -850,12 +849,11 @@ TEST(InterfacesTest, PoseDifferentialIO) {
   // node handle is created as per ros2
   auto node_ =
     rclcpp::Node::make_shared("InterfacesTest_PoseDifferentialIO_testcase");
-  rmw_qos_profile_t custom_qos_profile = rmw_qos_profile_default;
-  custom_qos_profile.depth = 5;
+
   // publish and subscribe calls have been changed as per ros2
   auto posePub =
     node_->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
-    "/pose_input1", custom_qos_profile);
+    "/pose_input1", rclcpp::QoS(5));
 
   auto filteredSub = node_->create_subscription<nav_msgs::msg::Odometry>(
     "/odometry/filtered", 10, filterCallback);
