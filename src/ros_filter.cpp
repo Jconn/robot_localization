@@ -1460,7 +1460,7 @@ void RosFilter::loadParams()
       deceleration_gains);
 
     control_sub_ = node_->create_subscription<geometry_msgs::msg::Twist>(
-      "cmd_vel", 10, 
+      "cmd_vel", 1, 
       std::bind(&RosFilter::controlCallback, this, std::placeholders::_1));
   }
 
