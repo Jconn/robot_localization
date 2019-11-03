@@ -1024,7 +1024,7 @@ void RosFilter::loadParams()
             pose_callback_data, twist_callback_data);
 
         topic_subs_.push_back(
-          node_->create_subscription<nav_msgs::msg::Odometry>(odom_topic, queue_size, 
+          node_->create_subscription<nav_msgs::msg::Odometry>(odom_topic, rclcpp::SensorDataQoS(rclcpp::QoSInitialization(RMW_QOS_POLICY_HISTORY_KEEP_LAST, queue_size)), 
           odom_callback));
       } else {
         std::stringstream stream;
@@ -1150,7 +1150,7 @@ void RosFilter::loadParams()
 
         topic_subs_.push_back(node_->create_subscription<
             geometry_msgs::msg::PoseWithCovarianceStamped>(
-            pose_topic, queue_size, pose_callback));
+            pose_topic, rclcpp::SensorDataQoS(rclcpp::QoSInitialization(RMW_QOS_POLICY_HISTORY_KEEP_LAST, queue_size)), pose_callback));
 
         if (differential) {
           twist_var_counts[StateMemberVx] += pose_update_vec[StateMemberX];
@@ -1238,7 +1238,7 @@ void RosFilter::loadParams()
 
         topic_subs_.push_back(node_->create_subscription<
             geometry_msgs::msg::TwistWithCovarianceStamped>(
-            twist_topic, queue_size, twist_callback));
+            twist_topic, rclcpp::SensorDataQoS(rclcpp::QoSInitialization(RMW_QOS_POLICY_HISTORY_KEEP_LAST, queue_size)), twist_callback));
 
         twist_var_counts[StateMemberVx] += twist_update_vec[StateMemberVx];
         twist_var_counts[StateMemberVy] += twist_update_vec[StateMemberVy];
@@ -1394,7 +1394,7 @@ void RosFilter::loadParams()
             twist_callback_data, accel_callback_data);
 
         topic_subs_.push_back(node_->create_subscription<sensor_msgs::msg::Imu>(
-            imu_topic, queue_size, imu_callback));
+            imu_topic, rclcpp::SensorDataQoS(rclcpp::QoSInitialization(RMW_QOS_POLICY_HISTORY_KEEP_LAST, queue_size)), imu_callback));
       } else {
         std::cerr << "Warning: " << imu_topic <<
           " is listed as an input topic, "
