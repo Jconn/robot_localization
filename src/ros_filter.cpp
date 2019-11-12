@@ -1024,7 +1024,7 @@ void RosFilter::loadParams()
             std::placeholders::_1, odom_topic_name,
             pose_callback_data, twist_callback_data);
 
-        auto custom_qos = rclcpp::QoS(rclcpp::KeepLast(queue_size)).durability_volatile().best_effort();
+        auto custom_qos = rclcpp::SensorDataQoS(rclcpp::KeepLast(queue_size));
         topic_subs_.push_back(
           node_->create_subscription<nav_msgs::msg::Odometry>(odom_topic, custom_qos, odom_callback));
       } else {
@@ -1150,7 +1150,7 @@ void RosFilter::loadParams()
           std::bind(&RosFilter::poseCallback, this, std::placeholders::_1,
             callback_data, world_frame_id_, false);
 
-        auto custom_qos = rclcpp::QoS(rclcpp::KeepLast(queue_size)).durability_volatile().best_effort();
+        auto custom_qos = rclcpp::SensorDataQoS(rclcpp::KeepLast(queue_size));
 
         topic_subs_.push_back(node_->create_subscription<
             geometry_msgs::msg::PoseWithCovarianceStamped>(
@@ -1241,7 +1241,7 @@ void RosFilter::loadParams()
             std::placeholders::_1, callback_data,
             base_link_frame_id_);
 
-        auto custom_qos = rclcpp::QoS(rclcpp::KeepLast(queue_size)).durability_volatile().best_effort();
+        auto custom_qos = rclcpp::SensorDataQoS(rclcpp::KeepLast(queue_size));
         topic_subs_.push_back(node_->create_subscription<
             geometry_msgs::msg::TwistWithCovarianceStamped>(
             twist_topic, custom_qos, twist_callback));
@@ -1400,7 +1400,7 @@ void RosFilter::loadParams()
             imu_topic_name, pose_callback_data,
             twist_callback_data, accel_callback_data);
             
-        auto custom_qos = rclcpp::QoS(rclcpp::KeepLast(queue_size)).durability_volatile().best_effort();
+        auto custom_qos = rclcpp::SensorDataQoS(rclcpp::KeepLast(queue_size));
         topic_subs_.push_back(node_->create_subscription<sensor_msgs::msg::Imu>(
             imu_topic, custom_qos, imu_callback));
       } else {
