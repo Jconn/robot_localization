@@ -956,7 +956,7 @@ void RosFilter::loadParams()
     rclcpp::Parameter parameter;
     if (rclcpp::PARAMETER_NOT_SET != node_->get_parameter(odom_topic_name, parameter)) {
       more_params = true;
-      odom_topic = node_->get_parameter(odom_topic_name, parameter);
+      odom_topic = parameter.as_string();
     } else {
         more_params = false;
         node_->undeclare_parameter(odom_topic_name);
@@ -1205,7 +1205,7 @@ void RosFilter::loadParams()
     rclcpp::Parameter parameter;
     if (rclcpp::PARAMETER_NOT_SET != node_->get_parameter(twist_topic_name, parameter)) {
       more_params = true;
-      twist_topic = node_->get_parameter(twist_topic_name, parameter);
+      twist_topic = parameter.as_string();
     } else {
         more_params = false;
         node_->undeclare_parameter(twist_topic_name);
@@ -1281,7 +1281,7 @@ void RosFilter::loadParams()
     rclcpp::Parameter parameter;
     if (rclcpp::PARAMETER_NOT_SET != node_->get_parameter(imu_topic_name, parameter)) {
       more_params = true;
-      imu_topic = node_->get_parameter(imu_topic_name, parameter);
+      imu_topic = parameter.as_string();
     } else {
         more_params = false;
         node_->undeclare_parameter(imu_topic_name);
@@ -2215,6 +2215,7 @@ std::vector<bool> RosFilter::loadUpdateConfig(const std::string & topic_name)
   const std::string topc_config_name = topic_name + "_config";
 
   node_->declare_parameter(topc_config_name, update_vector);
+  node_->get_parameter(topc_config_name, update_vector);
 
   return update_vector;
 }
