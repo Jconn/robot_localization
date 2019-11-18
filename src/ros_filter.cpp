@@ -37,6 +37,7 @@
 #include <robot_localization/ukf.hpp>
 
 #include <geometry_msgs/msg/transform_stamped.hpp>
+#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <rcl/time.h>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/imu.hpp>
@@ -1759,6 +1760,10 @@ void RosFilter::run()
   // Publisher
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr position_pub =
     node_->create_publisher<nav_msgs::msg::Odometry>("odometry/filtered", rclcpp::QoS(10));
+
+  rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr position_pub_no_twist =
+    node_->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("odometry/filtered/pose", rclcpp::QoS(10));
+
   tf2_ros::TransformBroadcaster world_transform_broadcaster(node_);
 
   // Optional acceleration publisher
@@ -1783,7 +1788,6 @@ void RosFilter::run()
 
     // Get latest state and publish it
     nav_msgs::msg::Odometry filtered_position;
-
     if (getFilteredOdometryMessage(filtered_position)) {
       world_base_link_trans_msg_.header.stamp =
         tf_time_offset_ + filtered_position.header.stamp;
@@ -1865,9 +1869,12 @@ void RosFilter::run()
         }
       }
 
+      geometry_msgs::msg::PoseWithCovarianceStamped filtered_pos_no_twist;
+      filtered_pos_no_twist.header = filtered_position.header;
+      filtered_pos_no_twist.pose = filtered_position.pose;
       // Fire off the position and the transform
       position_pub->publish(filtered_position);
-
+      position_pub_no_twist->publish(filtered_pos_no_twist);
       if (print_diagnostics_)
       {
         freqDiag.tick();
