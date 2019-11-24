@@ -111,7 +111,9 @@ install(
   navsat_transform_node
   se_node
   ${library_name}
-  DESTINATION lib/${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
@@ -174,7 +176,7 @@ if(BUILD_TESTING)
   ament_uncrustify()
 
   install(
-    TARGETS
+    TARGETS 
     filter_base-test
     test_filter_base_diagnostics_timestamps
     test_ekf
