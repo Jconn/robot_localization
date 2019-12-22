@@ -48,7 +48,10 @@ int main(int argc, char ** argv)
   auto node = rclcpp::Node::make_shared("se_node");
 
   std::string filter_type = "ekf";
+
   node->declare_parameter("filter_type", filter_type);
+  node->get_parameter("filter_type", filter_type);
+
   std::transform(filter_type.begin(), filter_type.end(), filter_type.begin(),
     ::tolower);
 
