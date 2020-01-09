@@ -102,7 +102,6 @@ target_link_libraries(
 
 ament_target_dependencies(
   se_node
-  ${library_name}
   ${dependencies}
 )
 
