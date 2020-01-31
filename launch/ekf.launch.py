@@ -33,11 +33,27 @@ def generate_launch_description():
     print(f"params file path is {parameters_file_path}")
     os.environ['FILE_PATH'] = str(parameters_file_dir)
 
-    use_sim_time = LaunchConfiguration('use_sim_time', default='true')
+    use_sim_time = LaunchConfiguration('use_sim_time', default='false')
 
     sim_arg = launch.actions.DeclareLaunchArgument(
             'use_sim_time', default_value='false',
             description='Use simulation (Gazebo) clock if true')
+
+
+    meka_model = 'big_meka'
+
+    urdf_file_name = meka_model + '.urdf'
+    xacro_file_name = meka_model + '.urdf.xacro'
+    big_meka_dir = os.path.join(get_package_share_directory('jetbot_gazebo'), 'models',meka_model) 
+    urdf_full_name = os.path.join(big_meka_dir, urdf_file_name)
+
+    robot_publisher = launch_ros.actions.Node(
+            package='robot_state_publisher',
+            node_executable='robot_state_publisher',
+            node_name='robot_state_publisher',
+            output='screen',
+            parameters=[{'use_sim_time': use_sim_time}],
+            arguments=[urdf_full_name])
 
          #*****test_ekf_localization_node_interfaces.test***** 
     se_node_odom = launch_ros.actions.Node(
@@ -69,14 +85,15 @@ def generate_launch_description():
                 str(parameters_file_path),
                 [EnvironmentVariable(name='FILE_PATH'), os.sep, 'mekaworks_navsat.yaml'], {'use_sim_time': use_sim_time}
                 ],
-            remappings=[('/gps/fix', '/gps/data'), 
-                ('/imu', '/imu/data'), 
+            remappings=[('/gps/fix', '/gps0/fix'), 
+                ('/imu', '/imu/filter_data'), 
                 ('/odometry/filtered', '/odometry/map_se')
                 ]
             )
 
     return LaunchDescription([
+        #robot_publisher,
         navsat_node,
         se_node_odom,
-        se_node_map,
+        se_node_map
         ])
