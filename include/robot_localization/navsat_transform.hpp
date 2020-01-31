@@ -36,7 +36,7 @@
 #include <robot_localization/srv/set_datum.hpp>
 
 #include <nav_msgs/msg/odometry.hpp>
-#include <rclcpp/time.hpp>
+#include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 #include <tf2/LinearMath/Transform.h>
@@ -57,7 +57,7 @@ public:
   /**
    * @brief Constructor
    */
-  NavSatTransform(const rclcpp::NodeOptions &);
+  explicit NavSatTransform(const rclcpp::NodeOptions &);
 
   /**
    * @brief Destructor
@@ -190,7 +190,7 @@ private:
    * @brief GPS Subscription
    */
   rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr gps_sub_;
-  
+
   /**
    * @brief Timestamp of the latest good GPS message
    *
@@ -282,12 +282,12 @@ private:
   /**
    * @brief Transform buffer for managing coordinate transforms
    */
-  tf2_ros::Buffer tf_buffer_;
+  std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 
   /**
    * @brief Transform listener for receiving transforms
    */
-  tf2_ros::TransformListener tf_listener_;
+  std::unique_ptr<tf2_ros::TransformListener> tf_listener_;
 
   /**
    * @brief Whether or not we've computed a good heading

@@ -41,6 +41,15 @@
 #include <string>
 #include <vector>
 
+#define THROTTLE(clock, duration, thing) do { \
+    static rclcpp::Time _last_output_time ## __LINE__(0, 0, (clock)->get_clock_type()); \
+    auto _now = (clock)->now(); \
+    if (_now - _last_output_time ## __LINE__ > (duration)) { \
+      _last_output_time ## __LINE__ = _now; \
+      thing; \
+    } \
+} while (0)
+
 std::ostream & operator<<(std::ostream & os, const tf2::Vector3 & vec)
 {
   os << "(" << std::setprecision(20) << vec.getX() << " " << vec.getY() << " " <<
@@ -112,12 +121,13 @@ double getYaw(const tf2::Quaternion quat)
 }
 
 bool lookupTransformSafe(
-  const tf2_ros::Buffer & buffer,
+  const tf2_ros::Buffer * buffer,
   const std::string & target_frame,
   const std::string & source_frame,
   const rclcpp::Time & time,
   const rclcpp::Duration & duration,
-  tf2::Transform & target_frame_trans)
+  tf2::Transform & target_frame_trans,
+  const bool silent)
 {
   bool retVal = true;
   tf2::TimePoint time_tf = tf2::timeFromSec(filter_utilities::toSec(time));
@@ -126,7 +136,7 @@ bool lookupTransformSafe(
 
   // First try to transform the data at the requested time
   try {
-    geometry_msgs::msg::TransformStamped stamped = buffer.lookupTransform(
+    geometry_msgs::msg::TransformStamped stamped = buffer->lookupTransform(
       target_frame, source_frame, time_tf, duration_tf);
     tf2::fromMsg(stamped.transform, target_frame_trans);
   } catch (tf2::TransformException & ex) {
@@ -135,20 +145,24 @@ bool lookupTransformSafe(
     // transform and warn the user.
     try {
       tf2::fromMsg(buffer
-        .lookupTransform(target_frame, source_frame,
+        ->lookupTransform(target_frame, source_frame,
         tf2::TimePointZero, duration_tf)
         .transform,
         target_frame_trans);
 
-      // ROS_WARN_STREAM_THROTTLE(2.0, "Transform from " << source_frame << " to
-      // " << target_frame <<
-      //                              " was unavailable for the time requested.
-      //                              Using latest instead.\n");
+      if (!silent) {
+        // ROS_WARN_STREAM_THROTTLE(2.0, "Transform from " << source_frame <<
+        // " to " << target_frame <<
+        //                              " was unavailable for the time
+        //                              requested. Using latest instead.\n");
+      }
     } catch (tf2::TransformException & ex) {
-      // ROS_WARN_STREAM_THROTTLE(2.0, "Could not obtain transform from " <<
-      // source_frame <<
-      //                              " to " << target_frame << ". Error was "
-      //                              << ex.what() << "\n");
+      if (!silent) {
+        // ROS_WARN_STREAM_THROTTLE(2.0, "Could not obtain transform from " <<
+        // source_frame <<
+        //                              " to " << target_frame << ". Error was "
+        //                              << ex.what() << "\n");
+      }
 
       retVal = false;
     }
@@ -168,14 +182,15 @@ bool lookupTransformSafe(
 }
 
 bool lookupTransformSafe(
-  const tf2_ros::Buffer & buffer,
+  const tf2_ros::Buffer * buffer,
   const std::string & target_frame,
   const std::string & source_frame,
   const rclcpp::Time & time,
-  tf2::Transform & target_frame_trans)
+  tf2::Transform & target_frame_trans,
+  const bool silent)
 {
   return lookupTransformSafe(buffer, target_frame, source_frame, time,
-           rclcpp::Duration(0), target_frame_trans);
+           rclcpp::Duration(0), target_frame_trans, silent);
 }
 
 void quatToRPY(

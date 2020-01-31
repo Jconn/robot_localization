@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2014, 2015, 2016 Charles River Analytics, Inc.
+ * Copyright (c) 2018, Locus Robotics
+ * Copyright (c) 2019, Steve Macenski
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +30,28 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <rclcpp/rclcpp.hpp>
-#include <robot_localization/navsat_transform.hpp>
 
+#include <robot_localization/ros_filter_types.hpp>
+#include <rclcpp/rclcpp.hpp>
+
+#include <algorithm>
+#include <string>
 #include <memory>
+#include <vector>
 
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
-
-  const rclcpp::NodeOptions options;
-  auto navsat_transform_node = std::make_shared<robot_localization::NavSatTransform>(options);
-
-  rclcpp::spin(navsat_transform_node->get_node_base_interface());
-
+  rclcpp::NodeOptions options;
+  options.arguments({"ukf_filter_node"});
+  std::shared_ptr<robot_localization::RosUkf> filter =
+    std::make_shared<robot_localization::RosUkf>(options);
+  double alpha = filter->declare_parameter("alpha", 0.001);
+  double kappa = filter->declare_parameter("kappa", 0.0);
+  double beta = filter->declare_parameter("beta", 2.0);
+  filter->getFilter().setConstants(alpha, kappa, beta);
+  filter->initialize();
+  rclcpp::spin(filter->get_node_base_interface());
   rclcpp::shutdown();
   return 0;
 }
