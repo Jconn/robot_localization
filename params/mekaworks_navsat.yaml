@@ -5,7 +5,7 @@ ekf_se_odom:
         publish_tf: true 
         frequency: 25.0
         sensor_timeout: 0.3
-        two_d_mode: false 
+        two_d_mode: true 
         filter_type: "ukf"
         transform_time_offset: 0.0
         transform_timeout: 0.0
@@ -80,7 +80,7 @@ ekf_se_map:
         filter_type: "ukf"
         frequency: 25.0
         sensor_timeout: 0.3
-        two_d_mode: false 
+        two_d_mode: true 
         transform_time_offset: 0.0
         transform_timeout: 0.0
         print_diagnostics: true
@@ -91,9 +91,8 @@ ekf_se_map:
         base_link_frame: base_link
         world_frame: map
 
-
         odom0: /odometry/gps
-        odom0_config: [true,  true,  true,
+        odom0_config: [true,  true,  false,
             false, false, false,
             false, false, false,
             false, false, false,
@@ -102,7 +101,6 @@ ekf_se_map:
         odom0_nodelay: true
         odom0_differential: false
         odom0_relative: false
-
 
         imu0: /imu/filter_data
         imu0_config: [false, false, false,
@@ -164,14 +162,14 @@ ekf_se_map:
 navsat_transform:
     ros__parameters:
         frequency: 30.0
-        delay: 1.0
+        delay: 4.0
         magnetic_declination_radians: 0.06977  #for near the San Antonio region
-        yaw_offset: -1.570796327  # IMU reads 0 facing magnetic north, not east
+        #yaw_offset: -1.570796327  # IMU reads 0 facing magnetic north, not east
         #yaw_offset: 3.14  # IMU reads 0 facing magnetic north, not east
-        #yaw_offset: 0.0  # for simulation 
+        yaw_offset: 1.570796327 #  # because we start at pi/2 radians now 
         #magnetic_declination_radians: 3.14159265359 #for simulation
         magnetic_declination_radians: 0.0 #for simulation
-        zero_altitude: false 
+        zero_altitude: true 
         broadcast_utm_transform: true
         publish_filtered_gps: true
         use_odometry_yaw: false 
