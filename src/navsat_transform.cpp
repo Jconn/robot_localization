@@ -147,7 +147,7 @@ NavSatTransform::NavSatTransform(const rclcpp::NodeOptions & options)
   gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>(
     "gps/fix", custom_qos, std::bind(&NavSatTransform::gpsFixCallback, this, _1));
 
-  if (!use_odometry_yaw_ && !use_manual_datum_) {
+  if (!use_odometry_yaw_ /*&& !use_manual_datum_*/) {
     imu_sub_ = this->create_subscription<sensor_msgs::msg::Imu>(
       "imu", custom_qos, std::bind(&NavSatTransform::imuCallback, this, _1));
   }
@@ -331,12 +331,12 @@ bool NavSatTransform::datumCallback(
     std::make_shared<nav_msgs::msg::Odometry>(odom);
   setTransformOdometry(odom_ptr);
 
-  sensor_msgs::msg::Imu imu;
-  imu.orientation = request->geo_pose.orientation;
-  imu.header.frame_id = base_link_frame_id_;
-  sensor_msgs::msg::Imu::SharedPtr imu_ptr =
-    std::make_shared<sensor_msgs::msg::Imu>(imu);
-  imuCallback(imu_ptr);
+  //sensor_msgs::msg::Imu imu;
+  //imu.orientation = request->geo_pose.orientation;
+  //imu.header.frame_id = base_link_frame_id_;
+  //sensor_msgs::msg::Imu::SharedPtr imu_ptr =
+  //  std::make_shared<sensor_msgs::msg::Imu>(imu);
+  //imuCallback(imu_ptr);
 
   return true;
 }

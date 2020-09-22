@@ -46,6 +46,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <std_msgs/msg/string.hpp>
+#include <std_msgs/msg/bool.hpp>
 #include <std_srvs/srv/empty.hpp>
 #include <tf2/LinearMath/Transform.h>
 #include <tf2_ros/transform_broadcaster.h>
@@ -774,6 +775,11 @@ protected:
   //! @brief optional signaling diagnostic frequency
   //!
   std::unique_ptr<diagnostic_updater::HeaderlessTopicDiagnostic> freq_diag_;
+  geometry_msgs::msg::TransformStamped map_odom_trans_msg_;
+
+  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr lock_transform_sub_;
+  bool map_locked_;
+  void lockMapCB(const std_msgs::msg::Bool::SharedPtr msg);
 };
 
 }  // namespace robot_localization

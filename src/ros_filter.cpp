@@ -991,6 +991,14 @@ void RosFilter<T>::loadParams()
     (print_diagnostics_ ? "true" : "false") << "\n");
 
   // Create a subscriber for manually setting/resetting pose
+  //
+  lock_transform_sub_ = 
+    this->create_subscription<std_msgs::msg::Bool>(
+    "robot_loc/lock_map", rclcpp::QoS(1),
+    std::bind(&RosFilter::lockMapCB, this, std::placeholders::_1));
+
+  map_locked_ = false;
+
   set_pose_sub_ =
     this->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
     "set_pose", rclcpp::QoS(1),
@@ -1745,6 +1753,12 @@ void RosFilter<T>::odometryCallback(
 }
 
 template<typename T>
+void RosFilter<T>::lockMapCB(const std_msgs::msg::Bool::SharedPtr msg)
+{
+    map_locked_ = msg->data;
+}
+
+template<typename T>
 void RosFilter<T>::poseCallback(
   const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg,
   const CallbackData & callback_data, const std::string & target_frame,
@@ -1986,15 +2000,19 @@ void RosFilter<T>::periodicUpdate()
            */
           tf2::Transform map_odom_trans;
           map_odom_trans.mult(world_base_link_trans, base_link_odom_trans);
+            
+          //if the map is locked, don't update the transform between odom and map
+          if(!map_locked_)
+          {
+              map_odom_trans_msg_.transform = tf2::toMsg(map_odom_trans);
+          }
 
-          geometry_msgs::msg::TransformStamped map_odom_trans_msg;
-          map_odom_trans_msg.transform = tf2::toMsg(map_odom_trans);
-          map_odom_trans_msg.header.stamp =
+          map_odom_trans_msg_.header.stamp =
             static_cast<rclcpp::Time>(filtered_position->header.stamp) + tf_time_offset_;
-          map_odom_trans_msg.header.frame_id = map_frame_id_;
-          map_odom_trans_msg.child_frame_id = odom_frame_id_;
+          map_odom_trans_msg_.header.frame_id = map_frame_id_;
+          map_odom_trans_msg_.child_frame_id = odom_frame_id_;
 
-          world_transform_broadcaster_->sendTransform(map_odom_trans_msg);
+          world_transform_broadcaster_->sendTransform(map_odom_trans_msg_);
         } catch (...) {
           // ROS_ERROR_STREAM_DELAYED_THROTTLE(5.0, "Could not obtain
           // transform from "
