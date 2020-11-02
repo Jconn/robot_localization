@@ -147,7 +147,7 @@ NavSatTransform::NavSatTransform(const rclcpp::NodeOptions & options)
   gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>(
     "gps/fix", custom_qos, std::bind(&NavSatTransform::gpsFixCallback, this, _1));
 
-  if (!use_odometry_yaw_ /*&& !use_manual_datum_*/) {
+  if (!use_odometry_yaw_ && !use_manual_datum_) {
     imu_sub_ = this->create_subscription<sensor_msgs::msg::Imu>(
       "imu", custom_qos, std::bind(&NavSatTransform::imuCallback, this, _1));
   }
@@ -176,7 +176,7 @@ void NavSatTransform::transformCallback()
   if (!transform_good_) {
     computeTransform();
 
-    if (transform_good_ && !use_odometry_yaw_) {
+    if (transform_good_ && !use_odometry_yaw_ && !use_manual_datum_) {
       // Once we have the transform, we don't need the IMU
       imu_sub_.reset();
     }
@@ -206,7 +206,7 @@ void NavSatTransform::computeTransform()
     // The UTM pose we have is given at the location of the GPS sensor on the
     // robot. We need to get the UTM pose of the robot's origin.
     tf2::Transform transform_utm_pose_corrected;
-    if (true || !use_manual_datum_) {
+    if (!use_manual_datum_) {
       getRobotOriginUtmPose(transform_utm_pose_, transform_utm_pose_corrected,
         rclcpp::Time(0));
     } else {
@@ -329,14 +329,14 @@ bool NavSatTransform::datumCallback(
   odom.child_frame_id = base_link_frame_id_;
   nav_msgs::msg::Odometry::SharedPtr odom_ptr =
     std::make_shared<nav_msgs::msg::Odometry>(odom);
-  //setTransformOdometry(odom_ptr);
+  setTransformOdometry(odom_ptr);
 
-  //sensor_msgs::msg::Imu imu;
-  //imu.orientation = request->geo_pose.orientation;
-  //imu.header.frame_id = base_link_frame_id_;
-  //sensor_msgs::msg::Imu::SharedPtr imu_ptr =
-  //  std::make_shared<sensor_msgs::msg::Imu>(imu);
-  //imuCallback(imu_ptr);
+  sensor_msgs::msg::Imu imu;
+  imu.orientation = request->geo_pose.orientation;
+  imu.header.frame_id = base_link_frame_id_;
+  sensor_msgs::msg::Imu::SharedPtr imu_ptr =
+    std::make_shared<sensor_msgs::msg::Imu>(imu);
+  imuCallback(imu_ptr);
 
   return true;
 }
@@ -622,7 +622,7 @@ void NavSatTransform::odomCallback(
   world_frame_id_ = msg->header.frame_id;
   base_link_frame_id_ = msg->child_frame_id;
 
-  if (!transform_good_) {
+  if (!transform_good_&& !use_manual_datum_) {
     setTransformOdometry(msg);
   }
 
@@ -779,7 +779,7 @@ void NavSatTransform::setTransformOdometry(
   // the odometry source, which may have multiple fused sources of
   // heading data, and so would act as a better heading for the
   // UTM->world_frame transform.
-  if (!transform_good_ && use_odometry_yaw_ ) {
+  if (!transform_good_ && use_odometry_yaw_ && !use_manual_datum_) {
     sensor_msgs::msg::Imu imu;
     imu.orientation = msg->pose.pose.orientation;
     imu.header.frame_id = msg->child_frame_id;
